@@ -1,0 +1,28 @@
+{
+  "movies": [
+    {
+      "id": 0,
+      "title": "Django Unchained",
+      "year": 2012,
+      "time": 165,
+      "director": "Quentin Tarantino",
+      "writer": "Quentin Tarantino"
+    },
+    {
+      "id": 1,
+      "title": "Barry Lyndon",
+      "year": 1975,
+      "time": 187,
+      "director": "Stanley Kubrick",
+      "writer": "Stanley Kubrick"
+    },
+    {
+      "id": 2,
+      "title": "Blade Runner",
+      "year": 1982,
+      "time": 117,
+      "director": "Ridley Scott",
+      "writer": "Hampton Fancher & David Peoples"
+    }
+  ]
+}
