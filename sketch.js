@@ -20,25 +20,31 @@ class Button {
     this.showInfo();
   }
 
+  //  Checks if the mouse is over the image
   over() {
+    //  If mouse is on --> Play song and return TRUE
     if (
       mouseX > this.x - this.standardWidth / 2 &&
       mouseX < this.x + this.standardWidth / 2 &&
       mouseY > this.y - this.standardHeight / 2 &&
       mouseY < this.y + this.standardHeight / 2
     ) {
-      console.log(this.id);
-      if (!songs[this.id].isPlaying()) songs[this.id].play();
-      console.log("songs:", songs[this.id]);
+      if (!songs[this.id].isPlaying()) songs[this.id].loop();
+      cursor(HAND);
       return true;
     } else {
+      //  Else pause song and return FALSE
       songs[this.id].pause();
+      cursor(ARROW);
+
       return false;
     }
   }
 
+  //  Shows movie information next to the image
   showInfo() {
     push();
+    //  Vertical offset to center text with the image
     translate(0, -50);
 
     textStyle(BOLD);
@@ -53,9 +59,12 @@ class Button {
       this.x * 2,
       this.y + 120
     );
+    //  Index of the movie / total movies in the dataset
+    text("(" + (this.id + 1) + "/" + nMovies + ")", this.x * 2, this.y + 180);
     pop();
   }
 
+  //  Run if mouse is pressed && over the image
   clicked() {
     if (this.over()) {
       movieSelected = true;
@@ -64,46 +73,54 @@ class Button {
   }
 }
 
+//  Declaring variables
 let buttons = [];
 
 let data;
 let imgs = new Array();
 let screenplays = new Array();
 let songs = new Array();
+
 let nMovies;
 let movies;
 
 let imgScale = 0;
 
-let fontSizeMax = 10;
-let fontSizeMin = 3;
-let spacing = 7; // line height
-let kerning = 0; // between letters
-let line = 0;
+const fontSizeMax = 15;
+const fontSizeMin = 5;
+const spacing = 7; // line height
+const kerning = -0.5; // between letters
 
 let movieSelected = false;
+let movieIndex = 0;
+
+let subtitle = "[Click on the images to see to words turn into pictures]";
 
 function preload() {
   data = loadJSON("./assets/json/movies.json");
-  for (let i = 0; i < 3; i++) {
+  //  Load all the assets (for cycle can be improved)
+  loadAssets();
+}
+
+function loadAssets() {
+  //  !Find a way to obtain the number of movies!
+  for (let i = 0; i < 4; i++) {
     imgs[i] = loadImage("./assets/img/movie_" + i + ".jpg");
     screenplays[i] = loadStrings("./assets/txt/movie_" + i + ".txt");
     songs[i] = loadSound("./assets/songs/movie_" + i + ".mp3");
   }
 }
 
-let subtitle = "[Click on the images to see to words turn into pictures]";
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textSize(10);
   textFont("Courier");
   //textAlign(LEFT, CENTER);
+
   imageMode(CENTER);
 
   movies = data.movies;
   nMovies = movies.length;
-
   movies.forEach((m, index) => {
     // text(m.year, width / 2, height / 4 + (index + 1) * 100);
     buttons[index] = new Button(m.id, m.title, imgs[index], screenplays[index]);
@@ -112,18 +129,8 @@ function setup() {
   setHomeBg();
 }
 
-let movieIndex = 0;
-
 function draw() {
-  //backgroundImage(imgs[0]);
-  // imgs.forEach((img, index) => {
-  //   image(img, width / 2, (index + 1) * 200, img.width / 5, img.height / 5);
-  // });
-
   if (!movieSelected) buttons[movieIndex].display();
-
-  //if (movieSelected) imageToText();
-  //noLoop();
 }
 
 function setHomeBg() {
@@ -138,7 +145,7 @@ function setHomeBg() {
 }
 
 function cleanText(screenplay) {
-  //  Firsy cycle to remove all voids
+  //  First cycle to remove all voids
   let n_s;
   screenplay.forEach((s, index, array) => {
     n_s = s.replace(/\s\s+|\r\n/g, "");
@@ -146,67 +153,107 @@ function cleanText(screenplay) {
     array.splice(index, n_s);
   });
 
-  //Second cycle to remove all the void elements from the array
+  //Second cycle to remove all the blank elements from the array
   screenplay.forEach((s, index, array) => {
     if (s === "") {
       console.log("Linea Vuota");
       array.splice(index, 1);
     }
   });
-
-  // console.log(screenplay);
 }
 
+//  Function that maps the screenplays letter over the image pixels
 function imageToText(img, screenplay) {
   background(0);
+  //  Remove every usless character
   cleanText(screenplay);
-  console.log("screenplay:", screenplay);
+  backgroundImage(img);
 
   let x = 0;
   let y = spacing;
   let counter = 0;
+  let line = 0;
+  let lines = screenplay.length;
+  let deltaWidth;
+  let deltaHeight;
+  let absDW;
+  let absDH;
 
-  while (y < height) {
+  console.log("imgScale:", imgScale);
+
+  push();
+  translate(width / 2, height / 2);
+  imageMode(CENTER);
+  img.resize(img.width * imgScale, img.height * imgScale);
+  console.log("img.height:", img.height);
+  console.log("img.width:", img.width);
+  console.log("height:", height);
+  console.log("width:", width);
+  deltaWidth = width - img.width;
+  deltaHeight = height - img.height;
+  absDW = abs(deltaWidth);
+  absDH = abs(deltaHeight);
+  x = absDW / 2;
+  // The cycle stops when the text reaches the bottom of the window
+  while (y < height + absDH / 2) {
     // translate position (display) to position (image)
     img.loadPixels();
-    for (let i = 0; i < 100; i++) {
+
+    //  For cycle to speed up the process
+    for (let i = 0; i < 1000; i++) {
       // get current color
-      let imgX = round(map(x, 0, width, 0, img.width));
-      let imgY = round(map(y, 0, height, 0, img.height));
+      // let imgX = round(map(x, 0, width, 0, img.width * imgScale));
+      // let imgY = round(map(y, 0, height, 0, img.height * imgScale));
+      let imgX = round(map(x, 0, width, 0, img.width + deltaWidth));
+      let imgY = round(map(y, 0, height, 0, img.height + deltaHeight));
+      // let imgX = round(map(x, 0, img.width, 0, width));
+      // let imgY = round(map(y, 0, img.height, 0, height));
       let c = color(img.get(imgX, imgY));
+      // Converting to greyscale
       let greyscale = round(
         red(c) * 0.222 + green(c) * 0.707 + blue(c) * 0.071
       );
 
-      push();
-      translate(x, y);
+      //  If the text file is over it starts from the beginning
+      if (line == lines - 1 && counter == screenplay[line].length - 1) {
+        line = 0;
+        counter = 0;
+      }
 
+      push();
+      //  Set the position of the letter
+      translate(x - width / 2 - absDW / 2, y - height / 2 - absDH / 2);
+
+      //  Font size is based on the greyscale value
       let fontSize = map(greyscale, 0, 255, fontSizeMax, fontSizeMin);
       fontSize = max(fontSize, 1);
       textSize(fontSize);
       fill(c);
 
-      //console.log("screenplay:", screenplay[line]);
+      //  Goes through the entire file line by line and char by char
       let letter = screenplay[line].charAt(counter);
       text(letter, 0, 0);
+      //Incrementing the horizontal position
+
       let letterWidth = textWidth(letter) + kerning;
       x += letterWidth;
-
       pop();
 
-      // linebreaks
-      if (x + letterWidth >= width) {
-        x = 0;
+      // Linebreaks
+      if (x + letterWidth > width + absDW / 2) {
+        x = absDW / 2;
         y += spacing;
       }
 
       counter++;
+      //  End Of Line --> New Line
       if (counter >= screenplay[line].length) {
         counter = 0;
         line++;
       }
     }
   }
+  pop();
 }
 
 function mousePressed() {
@@ -241,11 +288,11 @@ function decrementMovieIndex() {
   if (movieIndex < 0) movieIndex = nMovies - 1;
 }
 
-// function backgroundImage(img) {
-//   push();
-//   translate(width / 2, height / 2);
-//   imageMode(CENTER);
-//   imgScale = Math.max(width / img.width, height / img.height);
-//   image(img, 0, 0, img.width * imgScale, img.height * imgScale);
-//   pop();
-// }
+function backgroundImage(img) {
+  push();
+  translate(width / 2, height / 2);
+  imageMode(CENTER);
+  imgScale = Math.max(width / img.width, height / img.height);
+  //image(img, 0, 0, img.width * imgScale, img.height * imgScale);
+  pop();
+}

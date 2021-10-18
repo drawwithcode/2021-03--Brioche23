@@ -23,6 +23,14 @@
       "time": 117,
       "director": "Ridley Scott",
       "writer": "Hampton Fancher & David Peoples"
+    },
+    {
+      "id": 3,
+      "title": "True Detective",
+      "year": 2014,
+      "time": "8x55",
+      "director": "Cary Joji Fukunaga",
+      "writer": "Nic Pizzolatto"
     }
   ]
 }
