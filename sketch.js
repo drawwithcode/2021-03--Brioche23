@@ -13,9 +13,7 @@ class Button {
 
   display() {
     fill(255);
-    //text(this.text, width / 2, 200 + (this.id + 1) * 100);
     image(this.img, this.x, this.y, this.standardWidth, this.standardHeight);
-
     this.over();
     this.showInfo();
   }
@@ -84,8 +82,6 @@ let songs = new Array();
 let nMovies;
 let movies;
 
-let imgScale = 0;
-
 const fontSizeMax = 15;
 const fontSizeMin = 5;
 const spacing = 7; // line height
@@ -122,7 +118,6 @@ function setup() {
   movies = data.movies;
   nMovies = movies.length;
   movies.forEach((m, index) => {
-    // text(m.year, width / 2, height / 4 + (index + 1) * 100);
     buttons[index] = new Button(m.id, m.title, imgs[index], screenplays[index]);
   });
 
@@ -167,7 +162,7 @@ function imageToText(img, screenplay) {
   background(0);
   //  Remove every usless character
   cleanText(screenplay);
-  backgroundImage(img);
+  getImgScale(img);
 
   let x = 0;
   let y = spacing;
@@ -179,16 +174,13 @@ function imageToText(img, screenplay) {
   let absDW;
   let absDH;
 
+  let imgScale = getImgScale(img);
   console.log("imgScale:", imgScale);
 
   push();
   translate(width / 2, height / 2);
   imageMode(CENTER);
   img.resize(img.width * imgScale, img.height * imgScale);
-  console.log("img.height:", img.height);
-  console.log("img.width:", img.width);
-  console.log("height:", height);
-  console.log("width:", width);
   deltaWidth = width - img.width;
   deltaHeight = height - img.height;
   absDW = abs(deltaWidth);
@@ -202,12 +194,8 @@ function imageToText(img, screenplay) {
     //  For cycle to speed up the process
     for (let i = 0; i < 1000; i++) {
       // get current color
-      // let imgX = round(map(x, 0, width, 0, img.width * imgScale));
-      // let imgY = round(map(y, 0, height, 0, img.height * imgScale));
       let imgX = round(map(x, 0, width, 0, img.width + deltaWidth));
       let imgY = round(map(y, 0, height, 0, img.height + deltaHeight));
-      // let imgX = round(map(x, 0, img.width, 0, width));
-      // let imgY = round(map(y, 0, img.height, 0, height));
       let c = color(img.get(imgX, imgY));
       // Converting to greyscale
       let greyscale = round(
@@ -288,11 +276,14 @@ function decrementMovieIndex() {
   if (movieIndex < 0) movieIndex = nMovies - 1;
 }
 
-function backgroundImage(img) {
+function getImgScale(img) {
+  let is;
   push();
   translate(width / 2, height / 2);
   imageMode(CENTER);
-  imgScale = Math.max(width / img.width, height / img.height);
+  is = Math.max(width / img.width, height / img.height);
   //image(img, 0, 0, img.width * imgScale, img.height * imgScale);
   pop();
+
+  return is;
 }
