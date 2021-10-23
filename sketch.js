@@ -43,22 +43,19 @@ class Button {
   showInfo() {
     push();
     //  Vertical offset to center text with the image
-    translate(0, -50);
+    translate(this.x * 2, this.y - 50);
 
-    textStyle(BOLD);
     textAlign(LEFT);
-    text(movies[this.id].title, this.x * 2, this.y);
+    textSize(20);
+    textStyle(BOLD);
+    text(movies[this.id].title, 0, 0);
     textStyle(NORMAL);
-    text("Directed by " + movies[this.id].director, this.x * 2, this.y + 30);
-    text("Written by " + movies[this.id].writer, this.x * 2, this.y + 60);
-    text("Year: " + movies[this.id].year, this.x * 2, this.y + 90);
-    text(
-      "Running time: " + movies[this.id].time + "min",
-      this.x * 2,
-      this.y + 120
-    );
+    text("Directed by " + movies[this.id].director, 0, 0 + 25);
+    text("Written by " + movies[this.id].writer, 0, 0 + 50);
+    text("Year: " + movies[this.id].year, 0, 0 + 75);
+    text("Running time: " + movies[this.id].time + "min", 0, 0 + 100);
     //  Index of the movie / total movies in the dataset
-    text("(" + (this.id + 1) + "/" + nMovies + ")", this.x * 2, this.y + 180);
+    text("(" + (this.id + 1) + "/" + nMovies + ")", 0, 0 + 150);
     pop();
   }
 
@@ -93,14 +90,15 @@ let movieIndex = 0;
 let subtitle = "[Click on the images to see to words turn into pictures]";
 
 function preload() {
-  data = loadJSON("./assets/json/movies.json");
-  //  Load all the assets (for cycle can be improved)
-  loadAssets();
+  // To load the other assets after the main dataset.. callback function
+  data = loadJSON("./assets/json/movies.json", function (data) {
+    loadAssets(data.movies.length);
+  });
 }
 
-function loadAssets() {
+function loadAssets(_nMovies) {
   //  !Find a way to obtain the number of movies!
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < _nMovies; i++) {
     imgs[i] = loadImage("./assets/img/movie_" + i + ".jpg");
     screenplays[i] = loadStrings("./assets/txt/movie_" + i + ".txt");
     songs[i] = loadSound("./assets/songs/movie_" + i + ".mp3");
@@ -129,23 +127,37 @@ function draw() {
 }
 
 function setHomeBg() {
-  background(0);
-  //print(img.width + " • " + img.height);
   fill(255);
   textAlign(CENTER);
+  //  Title text
+  push();
   textSize(36);
-  text("Wordplay", width / 2, height / 8);
-  textSize(24);
-  text(subtitle, width / 2, height / 6);
+  translate(width / 2, height / 8);
+  text("Wordplay", 0, 0);
+  textSize(18);
+  text(subtitle, 0, 0 + 25);
+  pop();
+  //  Command text
+  push();
+  translate(width / 2, height - height / 6);
+  textSize(16);
+  textAlign(LEFT);
+  textStyle(BOLD);
+  text("Commands", 0, 0);
+  textStyle(NORMAL);
+  text("Right Arrow:\tNext Movie", 0, 0 + 20);
+  text("Left Arrow:\t Previous Movie", 0, 0 + 40);
+  text("Backspace:\t  Back to home (image mode)", 0, 0 + 60);
+  pop();
 }
 
 function cleanText(screenplay) {
   //  First cycle to remove all voids
-  let n_s;
+  let _s;
   screenplay.forEach((s, index, array) => {
-    n_s = s.replace(/\s\s+|\r\n/g, "");
-    array[index] = n_s;
-    array.splice(index, n_s);
+    _s = s.replace(/\s\s+|\r\n/g, "");
+    array[index] = trim(_s);
+    array.splice(index, s);
   });
 
   //Second cycle to remove all the blank elements from the array
