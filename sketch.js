@@ -1,26 +1,63 @@
-class Button {
-  constructor(id, text, image, screenplay) {
+/*
+Brioschi Alessio
+Creative Coding 2021-22
+
+Assignment_03
+"Digital collage:
+Mix images, data, sounds and generative graphics 
+to create a dynamic artwork"
+
+Idea
+Create a small movie/tv series dataset
+For every show you can listen to its main theme
+If you click on the image the movie screenplay will
+compose the image itself, matching the letters with the pixel color
+
+The code for the translation of the pixels into letters is taken
+from here:
+http://www.generative-gestaltung.de/2/sketches/?01_P/P_4_3_2_01
+
+This was my starting point but I had to massively modify it 
+to make it work with every image without distortions 
+
+MOUSE
+left click  : select image to convert
+
+KEYS
+right arrow : next movie
+left arrow  : previous movie
+backspace   : return to movie selection (from image mode)
+s           : save a png of the artwork
+*/
+
+//  Creating a class movie
+class Movie {
+  constructor(id, text) {
     this.id = id;
     this.text = text;
-    this.img = image;
+    this.img = imgs[this.id];
     this.x = width / 4;
     this.y = height / 2;
+    //  Width is fixed
     this.standardWidth = width / 3;
+    //  Height is set proportionally
     this.standardHeight =
       (this.img.height / this.img.width) * this.standardWidth;
-    this.screenplay = screenplay;
+    this.screenplay = screenplays[this.id];
   }
 
+  //  Function to display the movie
   display() {
-    fill(255);
     image(this.img, this.x, this.y, this.standardWidth, this.standardHeight);
-    this.over();
+    //  Displays text infos
     this.showInfo();
+    //  Checks if mouse is over
+    this.over();
   }
 
   //  Checks if the mouse is over the image
   over() {
-    //  If mouse is on --> Play song and return TRUE
+    //  If mouse is over --> Play song and return TRUE
     if (
       mouseX > this.x - this.standardWidth / 2 &&
       mouseX < this.x + this.standardWidth / 2 &&
@@ -28,13 +65,12 @@ class Button {
       mouseY < this.y + this.standardHeight / 2
     ) {
       if (!songs[this.id].isPlaying()) songs[this.id].loop();
-      cursor(HAND);
+      cursor(HAND); //  Cursor becomes a hand
       return true;
     } else {
       //  Else pause song and return FALSE
       songs[this.id].pause();
       cursor(ARROW);
-
       return false;
     }
   }
@@ -44,7 +80,6 @@ class Button {
     push();
     //  Vertical offset to center text with the image
     translate(this.x * 2, this.y - 50);
-
     textAlign(LEFT);
     textSize(20);
     textStyle(BOLD);
@@ -53,7 +88,7 @@ class Button {
     text("Directed by " + movies[this.id].director, 0, 0 + 25);
     text("Written by " + movies[this.id].writer, 0, 0 + 50);
     text("Year: " + movies[this.id].year, 0, 0 + 75);
-    text("Running time: " + movies[this.id].time + "min", 0, 0 + 100);
+    text("Running time: " + movies[this.id].time + " min", 0, 0 + 100);
     //  Index of the movie / total movies in the dataset
     text("(" + (this.id + 1) + "/" + nMovies + ")", 0, 0 + 150);
     pop();
@@ -63,6 +98,7 @@ class Button {
   clicked() {
     if (this.over()) {
       movieSelected = true;
+      //  Run the function to convert the image into text
       imageToText(this.img, this.screenplay);
     }
   }
@@ -79,9 +115,9 @@ let songs = new Array();
 let nMovies;
 let movies;
 
-const fontSizeMax = 15;
-const fontSizeMin = 5;
-const spacing = 7; // line height
+const fontSizeMax = 12;
+const fontSizeMin = 4;
+const spacing = 6; // line height
 const kerning = -0.5; // between letters
 
 let movieSelected = false;
@@ -89,15 +125,19 @@ let movieIndex = 0;
 
 let subtitle = "[Click on the images to see to words turn into pictures]";
 
+//  Preload assets
 function preload() {
-  // To load the other assets after the main dataset.. callback function
+  //  Using callback function to load the other assets after the main dataset
+  //  based upon the number of elements in the JSON file
   data = loadJSON("./assets/json/movies.json", function (data) {
     loadAssets(data.movies.length);
   });
 }
 
+//  Callback
 function loadAssets(_nMovies) {
-  //  !Find a way to obtain the number of movies!
+  //  Since all the files are named in the same way I use a for cycle
+  //  Load all the assets in arrays
   for (let i = 0; i < _nMovies; i++) {
     imgs[i] = loadImage("./assets/img/movie_" + i + ".jpg");
     screenplays[i] = loadStrings("./assets/txt/movie_" + i + ".txt");
@@ -110,26 +150,32 @@ function setup() {
   textSize(10);
   textFont("Courier");
   //textAlign(LEFT, CENTER);
-
   imageMode(CENTER);
 
+  //  Obtaining informations form the JSSON
   movies = data.movies;
   nMovies = movies.length;
+  //  ForEach to create a class for every movie
   movies.forEach((m, index) => {
-    buttons[index] = new Button(m.id, m.title, imgs[index], screenplays[index]);
+    buttons[index] = new Movie(m.id, m.title);
   });
 
+  //  Displaying the elements in the home
   setHomeBg();
 }
 
 function draw() {
+  //  If no movie is selected --> Display the movie selection
   if (!movieSelected) buttons[movieIndex].display();
 }
 
+//  Function to set up some basic static text
 function setHomeBg() {
+  background(0);
   fill(255);
   textAlign(CENTER);
   //  Title text
+  //  By using translate is easier to move all the text at once
   push();
   textSize(36);
   translate(width / 2, height / 8);
@@ -137,7 +183,7 @@ function setHomeBg() {
   textSize(18);
   text(subtitle, 0, 0 + 25);
   pop();
-  //  Command text
+  //  Commands text
   push();
   translate(width / 2, height - height / 6);
   textSize(16);
@@ -148,11 +194,15 @@ function setHomeBg() {
   text("Right Arrow:\tNext Movie", 0, 0 + 20);
   text("Left Arrow:\t Previous Movie", 0, 0 + 40);
   text("Backspace:\t  Back to home (image mode)", 0, 0 + 60);
+  text("S:\t\t\t\t\t\tSave Artwork as a .png", 0, 0 + 80);
   pop();
 }
 
+//  Function to remove all the white spaces and empty elements
+//  in the Screenplay array
+//  (Each position is an array of strings)
 function cleanText(screenplay) {
-  //  First cycle to remove all voids
+  //  First cycle to remove all blanks
   let _s;
   screenplay.forEach((s, index, array) => {
     _s = s.replace(/\s\s+|\r\n/g, "");
@@ -160,7 +210,9 @@ function cleanText(screenplay) {
     array.splice(index, s);
   });
 
-  //Second cycle to remove all the blank elements from the array
+  //  Second cycle to remove all the empty elements from the array
+  //  It can be optimized but I couldn't quite manage how to do that
+  //  (Two forEach are a bit overkill)
   screenplay.forEach((s, index, array) => {
     if (s === "") {
       console.log("Linea Vuota");
@@ -174,7 +226,6 @@ function imageToText(img, screenplay) {
   background(0);
   //  Remove every usless character
   cleanText(screenplay);
-  getImgScale(img);
 
   let x = 0;
   let y = spacing;
@@ -185,27 +236,32 @@ function imageToText(img, screenplay) {
   let deltaHeight;
   let absDW;
   let absDH;
-
+  //  imgScale is useful to avoid the stretch of the final image
   let imgScale = getImgScale(img);
-  console.log("imgScale:", imgScale);
-
+  //  Creating the same condition of the backgroundImage function seen in lesson 04
+  //  Adapting the code to work in this situation so the image proportions are mantained
   push();
+  //  Set origin in the center
   translate(width / 2, height / 2);
   imageMode(CENTER);
+  //  Resizing the image to fit the window without distorting it
   img.resize(img.width * imgScale, img.height * imgScale);
+  //  Calculating the deltas --> How much the other dimension goes over the window boundaries
   deltaWidth = width - img.width;
   deltaHeight = height - img.height;
   absDW = abs(deltaWidth);
   absDH = abs(deltaHeight);
-  x = absDW / 2;
-  // The cycle stops when the text reaches the bottom of the window
-  while (y < height + absDH / 2) {
-    // translate position (display) to position (image)
-    img.loadPixels();
 
+  //  Setting the starting X coordinate (position of the left margin)
+  //  Devided by 2 because the image is centered
+  x = absDW / 2;
+  // The cycle stops when the text reaches the bottom of the window (+ half the delta)
+  while (y < height + absDH / 2) {
+    //  Loading pixels of the resized image
+    img.loadPixels();
     //  For cycle to speed up the process
     for (let i = 0; i < 1000; i++) {
-      // get current color
+      // Get current color
       let imgX = round(map(x, 0, width, 0, img.width + deltaWidth));
       let imgY = round(map(y, 0, height, 0, img.height + deltaHeight));
       let c = color(img.get(imgX, imgY));
@@ -215,6 +271,8 @@ function imageToText(img, screenplay) {
       );
 
       //  If the text file is over it starts from the beginning
+      //  In this way I can avoid putting the entire script into the text file
+      //  or if the script is too short it won't be a problem
       if (line == lines - 1 && counter == screenplay[line].length - 1) {
         line = 0;
         counter = 0;
@@ -233,20 +291,22 @@ function imageToText(img, screenplay) {
       //  Goes through the entire file line by line and char by char
       let letter = screenplay[line].charAt(counter);
       text(letter, 0, 0);
-      //Incrementing the horizontal position
 
+      //Incrementing the horizontal position
       let letterWidth = textWidth(letter) + kerning;
       x += letterWidth;
       pop();
 
-      // Linebreaks
+      // Linebreaks when X reaches the width of the window (+ half the delta)
       if (x + letterWidth > width + absDW / 2) {
         x = absDW / 2;
         y += spacing;
       }
 
+      //  Next letter
       counter++;
-      //  End Of Line --> New Line
+
+      //  In the string array is End Of Line --> New Line
       if (counter >= screenplay[line].length) {
         counter = 0;
         line++;
@@ -256,11 +316,22 @@ function imageToText(img, screenplay) {
   pop();
 }
 
+//  Checks if mouse is pressed
 function mousePressed() {
   if (!movieSelected) buttons[movieIndex].clicked();
 }
 
+//  Key actions
 function keyPressed() {
+  let d = day();
+  let m = month();
+  let y = year();
+
+  //  Save canvas as a png with date
+  if (key == "s" || key == "S")
+    saveCanvas(y + "_" + m + "_" + d + "_Collage", "png");
+
+  //  In the select movie mode
   if (!movieSelected)
     if (keyCode === LEFT_ARROW) {
       decrementMovieIndex();
@@ -275,26 +346,29 @@ function keyPressed() {
 }
 
 function incrementMovieIndex() {
-  setHomeBg();
-  songs[movieIndex].stop();
+  setHomeBg(); //Reset movie index
+  songs[movieIndex].stop(); //Stop the music
+  //  Loop the count
   if (movieIndex < nMovies) movieIndex++;
   if (movieIndex == nMovies) movieIndex = 0;
 }
 
 function decrementMovieIndex() {
-  setHomeBg();
-  songs[movieIndex].stop();
+  setHomeBg(); //Reset movie index
+  songs[movieIndex].stop(); //Stop the music
+  //  Loop the count
   if (movieIndex >= 0) movieIndex--;
   if (movieIndex < 0) movieIndex = nMovies - 1;
 }
 
+//  Based on the backgroundImage function seen in lesson 04
+//  Finds the scaling ratio to make one of the two dimension fit the window
 function getImgScale(img) {
   let is;
   push();
   translate(width / 2, height / 2);
   imageMode(CENTER);
   is = Math.max(width / img.width, height / img.height);
-  //image(img, 0, 0, img.width * imgScale, img.height * imgScale);
   pop();
 
   return is;
