@@ -77,6 +77,7 @@ class Movie {
 
   //  Shows movie information next to the image
   showInfo() {
+    let sp = 25; // Spacing
     push();
     //  Vertical offset to center text with the image
     translate(this.x * 2, this.y - 50);
@@ -85,12 +86,12 @@ class Movie {
     textStyle(BOLD);
     text(movies[this.id].title, 0, 0);
     textStyle(NORMAL);
-    text("Directed by " + movies[this.id].director, 0, 0 + 25);
-    text("Written by " + movies[this.id].writer, 0, 0 + 50);
-    text("Year: " + movies[this.id].year, 0, 0 + 75);
-    text("Running time: " + movies[this.id].time + " min", 0, 0 + 100);
+    text("Directed by " + movies[this.id].director, 0, 0 + sp);
+    text("Written by " + movies[this.id].writer, 0, 0 + sp * 2);
+    text("Year: " + movies[this.id].year, 0, 0 + sp * 3);
+    text("Running time: " + movies[this.id].time + " min", 0, 0 + sp * 4);
     //  Index of the movie / total movies in the dataset
-    text("(" + (this.id + 1) + "/" + nMovies + ")", 0, 0 + 150);
+    text("(" + (this.id + 1) + "/" + nMovies + ")", 0, 0 + sp * 5);
     pop();
   }
 
@@ -171,30 +172,32 @@ function draw() {
 
 //  Function to set up some basic static text
 function setHomeBg() {
+  let sp = 25; //  Spacing
   background(0);
   fill(255);
   textAlign(CENTER);
   //  Title text
-  //  By using translate is easier to move all the text at once
   push();
   textSize(36);
+  //  By using translate is easier to move all the text at once
   translate(width / 2, height / 8);
   text("Wordplay", 0, 0);
   textSize(18);
-  text(subtitle, 0, 0 + 25);
+  text(subtitle, 0, 0 + sp);
   pop();
   //  Commands text
   push();
+  sp = 20;
   translate(width / 2, height - height / 6);
   textSize(16);
   textAlign(LEFT);
   textStyle(BOLD);
   text("Commands", 0, 0);
   textStyle(NORMAL);
-  text("Right Arrow:\tNext Movie", 0, 0 + 20);
-  text("Left Arrow:\t Previous Movie", 0, 0 + 40);
-  text("Backspace:\t  Back to home (image mode)", 0, 0 + 60);
-  text("S:\t\t\t\t\t\tSave Artwork as a .png", 0, 0 + 80);
+  text("Right Arrow:\tNext Movie", 0, sp);
+  text("Left Arrow:\t Previous Movie", 0, sp * 2);
+  text("Backspace:\t  Back to home (image mode)", 0, sp * 3);
+  text("S:\t\t\t\t\t\tSave Artwork as a .png", 0, sp * 4);
   pop();
 }
 
